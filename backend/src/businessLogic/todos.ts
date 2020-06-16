@@ -13,12 +13,12 @@ export async function getAllTodoItems(): Promise<TodoItem[]> {
 
 export async function createTodoItem(
   createTodoRequest: CreateTodoRequest,
-//  jwtToken: string
+  jwtToken: string
 ): Promise<TodoItem> {
 
   const itemId = uuid.v4()
-  const userId = "testuser"
-//  const userId = parseUserId(jwtToken)
+//  const userId = "testuser"
+  const userId = parseUserId(jwtToken)
 
   return await todoItemAccess.createTodoItem({
     todoId: itemId,
