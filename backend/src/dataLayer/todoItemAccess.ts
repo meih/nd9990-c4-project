@@ -5,6 +5,7 @@ import { DocumentClient } from 'aws-sdk/clients/dynamodb'
 const XAWS = AWSXRay.captureAWS(AWS)
 
 import { TodoItem } from '../models/TodoItem'
+import { TodoUpdate } from '../models/TodoUpdate'
 
 export class TodoItemAccess {
 
@@ -13,11 +14,22 @@ export class TodoItemAccess {
     private readonly todosTable = process.env.TODOS_TABLE) {
   }
 
-  async getAllTodoItems(): Promise<TodoItem[]> {
+  async getAllTodoItems(
+    userId: string
+  ): Promise<TodoItem[]> {
     console.log('Getting all todos')
 
+    /*
     const result = await this.docClient.scan({
       TableName: this.todosTable
+    }).promise()
+    */
+    const result = await this.docClient.query({
+      TableName : this.todosTable,
+      KeyConditionExpression: 'userId = :userId',
+      ExpressionAttributeValues: {
+          ':userId': userId
+      }
     }).promise()
 
     const items = result.Items
@@ -32,6 +44,44 @@ export class TodoItemAccess {
 
     return todo
   }
+
+  async updateTodoItem(
+    userId: string,
+    todoId: string,
+    todo: TodoUpdate
+    ): Promise<TodoItem> {
+    await this.docClient.update({
+      TableName: this.todosTable,
+      Key: {
+        'userId': userId,
+        'todoId': todoId
+      },
+      UpdateExpression: 'set #name = :name, dueDate = :dueDate, done = :done',
+      ExpressionAttributeNames: {
+        '#name': 'name'
+      },
+      ExpressionAttributeValues: {
+        ':name' : todo.name,
+        ':dueDate' : todo.dueDate,
+        ':done' : todo.done
+      }
+    }).promise()
+
+    return
+  }
+
+  async deleteTodoItem(userId: string, todoId: string): Promise<TodoItem> {
+    await this.docClient.delete({
+      TableName: this.todosTable,
+      Key: {
+        'userId': userId,
+        'todoId': todoId
+      }
+    }).promise()
+
+    return
+  }
+
 }
 
 function createDynamoDBClient() {

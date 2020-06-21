@@ -9,7 +9,11 @@ const todosTable = process.env.TODOS_TABLE
 
 export const handler: APIGatewayProxyHandler = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
   // TODO: Get all TODO items for a current user
-  const items = await getAllTodoItems()
+  console.log('Processing event: ', event)
+  const authorization = event.headers.Authorization
+  const split = authorization.split(' ')
+  const jwtToken = split[1]
+  const items = await getAllTodoItems(jwtToken)
 
   console.log(items)
 
