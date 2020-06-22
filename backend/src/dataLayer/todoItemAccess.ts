@@ -19,11 +19,6 @@ export class TodoItemAccess {
   ): Promise<TodoItem[]> {
     console.log('Getting all todos')
 
-    /*
-    const result = await this.docClient.scan({
-      TableName: this.todosTable
-    }).promise()
-    */
     const result = await this.docClient.query({
       TableName : this.todosTable,
       KeyConditionExpression: 'userId = :userId',
@@ -76,6 +71,27 @@ export class TodoItemAccess {
       Key: {
         'userId': userId,
         'todoId': todoId
+      }
+    }).promise()
+
+    return
+  }
+
+
+  async setAttachmentUrl(
+    userId: string,
+    todoId: string,
+    attachmentUrl: string
+    ): Promise<TodoItem> {
+    await this.docClient.update({
+      TableName: this.todosTable,
+      Key: {
+        'userId': userId,
+        'todoId': todoId
+      },
+      UpdateExpression: 'set attachmentUrl = :attachmentUrl',
+      ExpressionAttributeValues: {
+        ':attachmentUrl' : attachmentUrl
       }
     }).promise()
 

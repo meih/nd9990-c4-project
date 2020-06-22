@@ -38,15 +38,24 @@ export async function createTodoItem(
 export async function updateTodoItem(
   userId: string,
   todoId: string,
-  updateTodoRequest: UpdateTodoRequest,
+  updateTodoRequest: UpdateTodoRequest
 ): Promise<TodoItem> {
   return todoItemAccess.updateTodoItem(userId, todoId, updateTodoRequest)
 }
 
 export async function deleteTodoItem(
   jwtToken: string,
-  todoId: string,
+  todoId: string
 ): Promise<TodoItem> {
   const userId = parseUserId(jwtToken)
   return todoItemAccess.deleteTodoItem(userId, todoId)
+}
+
+export async function setAttachmentUrl(
+  jwtToken: string,
+  todoId: string,
+  url: string
+): Promise<TodoItem> {
+  const userId = parseUserId(jwtToken)
+  return todoItemAccess.setAttachmentUrl(userId, todoId, url)
 }
