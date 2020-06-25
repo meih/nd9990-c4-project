@@ -3,6 +3,7 @@ import 'source-map-support/register'
 import * as AWS  from 'aws-sdk'
 import * as uuid from 'uuid'
 import { setAttachmentUrl } from '../../businessLogic/todos'
+import { getUserId } from '../utils'
 
 const s3 = new AWS.S3({
   signatureVersion: 'v4'
@@ -16,10 +17,8 @@ export const handler: APIGatewayProxyHandler = async (event: APIGatewayProxyEven
   const imageId = uuid.v4()
 
   // TODO: Return a presigned URL to upload a file for a TODO item with the provided id
-  const authorization = event.headers.Authorization
-  const split = authorization.split(' ')
-  const jwtToken = split[1]
-
+  const userId = getUserId(event)
+  
   const url = s3.getSignedUrl('putObject', {
     Bucket: bucketName,
     Key: imageId,
@@ -27,7 +26,8 @@ export const handler: APIGatewayProxyHandler = async (event: APIGatewayProxyEven
   })
   console.log(url)
 
-  const items = await setAttachmentUrl(jwtToken, todoId, url)
+  const plain_url = url.replace(/\?.*$/,"");
+  const items = await setAttachmentUrl(userId, todoId, plain_url)
 
   const response = {
     statusCode: 200,
