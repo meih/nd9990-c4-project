@@ -4,8 +4,14 @@ service:
 plugins:
   - serverless-webpack
   - serverless-iam-roles-per-function
+  - serverless-reqvalidator-plugin
 
 provider:
+
+  tracing: 
+    lambda: true
+    apiGateway: true
+  
   name: aws
   runtime: nodejs12.x
 
@@ -36,7 +42,22 @@ provider:
         - s3:PutObject
         - s3:GetObject
       Resource: arn:aws:s3:::${self:provider.environment.IMAGES_S3_BUCKET}/*
-          
+
+custom:
+  documentation:
+    api:
+      info:
+        version: v1.0.0
+        title: Serverless ToDo
+        description: Serverless ToDo App
+    models:
+      - name: CreateTodoRequest
+        contentType: application/json
+        schema: ${file(models/create-todo-request.json)}
+      - name: UpdateTodoRequest
+        contentType: application/json
+        schema: ${file(models/update-todo-request.json)}
+      
 functions:
 
   Auth:
@@ -59,6 +80,12 @@ functions:
           method: post
           path: todos
           cors: true
+          reqValidatorName: RequestBodyValidator
+          documentation:
+            summary: Create a new todo
+            description: Create a new todo
+            requestModels:
+              'application/json': TodoRequest
 
   # TODO: Configure this function
   UpdateTodo:
@@ -151,4 +178,12 @@ resources:
               Action: 's3:GetObject'
               Resource: 'arn:aws:s3:::${self:provider.environment.IMAGES_S3_BUCKET}/*'
         Bucket: !Ref AttachmentsBucket
-          
+
+    RequestBodyValidator:
+      Type: AWS::ApiGateway::RequestValidator
+      Properties:
+        Name: 'request-body-validator'
+        RestApiId:
+          Ref: ApiGatewayRestApi
+        ValidateRequestBody: true
+        ValidateRequestParameters: false
